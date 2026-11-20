@@ -63,7 +63,7 @@ class TransactionViewModel(
 
     fun deleteTransaction(id: Int) {
         viewModelScope.launch {
-            db.transactionDao().getById(id)?.let { db.transactionDao().delete(it) }
+            db.transactionDao().softDelete(id, System.currentTimeMillis())
             load()
         }
     }

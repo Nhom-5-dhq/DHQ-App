@@ -20,6 +20,9 @@
         <activity android:name=".MainActivity" android:exported="false" />
         <activity android:name=".ForgotPasswordActivity" android:exported="false" />
         <activity android:name=".ChangePasswordActivity" android:exported="false" />
+        <activity android:name=".ProfileInfoActivity" android:exported="false" />
+        <activity android:name=".ExportCsvActivity" android:exported="false" />
+        <activity android:name=".BackupRestoreActivity" android:exported="false" />
 
 </application>
 

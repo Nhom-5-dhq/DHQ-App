@@ -12,12 +12,19 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import com.nhom5.dhqapp.BackupRestoreActivity
 import com.nhom5.dhqapp.ChangePasswordActivity
+import com.nhom5.dhqapp.ExportCsvActivity
+import com.nhom5.dhqapp.ProfileInfoActivity
 import com.nhom5.dhqapp.data.AppDatabase
-import kotlinx.coroutines.runBlocking
+import com.nhom5.dhqapp.data.User
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,7 +36,25 @@ fun SettingsScreen(
     onLogout: () -> Unit
 ) {
     val context = LocalContext.current
-    val user = remember { runBlocking { db.userDao().findById(userId) } }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val scope = rememberCoroutineScope()
+    var user by remember { mutableStateOf<User?>(null) }
+
+    // Tải thông tin user lần đầu
+    LaunchedEffect(Unit) {
+        user = db.userDao().findById(userId)
+    }
+
+    // Tải lại mỗi khi màn hình được hiển thị lại (sau khi sửa thông tin ở trang cá nhân)
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                scope.launch { user = db.userDao().findById(userId) }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     Scaffold(topBar = { CenterAlignedTopAppBar(title = { Text("Cài đặt & Hồ sơ") }) }) { padding ->
         // ✅ Một Column duy nhất, cuộn được — mọi thứ (kể cả nút Đăng xuất) cuộn chung
@@ -73,6 +98,19 @@ fun SettingsScreen(
 
             HorizontalDivider()
 
+            // ✅ Xem thông tin cá nhân — nằm TRÊN mục Đổi mật khẩu
+            Surface(
+                onClick = { context.startActivity(Intent(context, ProfileInfoActivity::class.java)) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                ListItem(
+                    headlineContent = { Text("Xem thông tin cá nhân") },
+                    trailingContent = { Icon(Icons.Default.ChevronRight, contentDescription = null) }
+                )
+            }
+
+            HorizontalDivider()
+
             // Đổi mật khẩu
             Surface(
                 onClick = { context.startActivity(Intent(context, ChangePasswordActivity::class.java)) },
@@ -84,12 +122,27 @@ fun SettingsScreen(
                 )
             }
 
-            // Các mục khác
-            listOf("Khóa ứng dụng (PIN)", "Xuất dữ liệu CSV", "Sao lưu / Khôi phục").forEach { label ->
+            // Xuất dữ liệu CSV
+            Surface(
+                onClick = { context.startActivity(android.content.Intent(context, ExportCsvActivity::class.java)) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 ListItem(
-                    headlineContent = { Text(label) },
-                    trailingContent = { Icon(Icons.Default.ChevronRight, contentDescription = null) },
-                    modifier = Modifier.fillMaxWidth()
+                    headlineContent = { Text("Xuất dữ liệu CSV") },
+                    supportingContent = { Text("Xuất giao dịch ra file Excel/CSV") },
+                    trailingContent = { Icon(Icons.Default.ChevronRight, contentDescription = null) }
+                )
+            }
+
+            // Sao lưu / Khôi phục
+            Surface(
+                onClick = { context.startActivity(android.content.Intent(context, BackupRestoreActivity::class.java)) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                ListItem(
+                    headlineContent = { Text("Sao lưu / Khôi phục") },
+                    supportingContent = { Text("Sao lưu file + khôi phục giao dịch đã xóa") },
+                    trailingContent = { Icon(Icons.Default.ChevronRight, contentDescription = null) }
                 )
             }
 
