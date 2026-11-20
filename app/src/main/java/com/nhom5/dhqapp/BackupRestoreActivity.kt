@@ -167,7 +167,8 @@ class BackupRestoreActivity : AppCompatActivity() {
                                             Spacer(Modifier.width(8.dp))
                                             TextButton(onClick = {
                                                 scope.launch {
-                                                    db.transactionDao().restoreById(item.id)
+                                                    val userId = session.loggedInUserId.first()
+                                                    db.transactionDao().restoreById(item.id, userId)
                                                     Toast.makeText(context, "Đã khôi phục", Toast.LENGTH_SHORT).show()
                                                     loadDeleted()
                                                 }

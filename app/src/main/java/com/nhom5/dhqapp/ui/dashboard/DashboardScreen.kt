@@ -14,6 +14,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import com.nhom5.dhqapp.data.AppDatabase
 import com.nhom5.dhqapp.ui.theme.ExpenseRed
 import com.nhom5.dhqapp.ui.theme.IncomeGreen
@@ -38,6 +41,15 @@ fun DashboardScreen(
     )
     // Đọc StateFlow theo Lab 6 — xoay máy không mất state
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) { viewModel.load() }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
 
     Scaffold(topBar = {
         CenterAlignedTopAppBar(title = { Text("Tổng quan tài chính") })

@@ -20,11 +20,11 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions WHERE id = :id LIMIT 1")
     suspend fun getById(id: Int): Transaction?
 
-    @Query("UPDATE transactions SET isDeleted = 1, deletedAt = :time WHERE id = :id")
-    suspend fun softDelete(id: Int, time: Long)
+    @Query("UPDATE transactions SET isDeleted = 1, deletedAt = :time WHERE id = :id AND userId = :userId AND isDeleted = 0")
+    suspend fun softDelete(id: Int, userId: Int, time: Long)
 
-    @Query("UPDATE transactions SET isDeleted = 0, deletedAt = 0 WHERE id = :id")
-    suspend fun restoreById(id: Int)
+    @Query("UPDATE transactions SET isDeleted = 0, deletedAt = 0 WHERE id = :id AND userId = :userId AND isDeleted = 1")
+    suspend fun restoreById(id: Int, userId: Int)
 
     @Query("UPDATE transactions SET isDeleted = 0, deletedAt = 0 WHERE userId = :userId AND isDeleted = 1")
     suspend fun restoreAllDeleted(userId: Int)

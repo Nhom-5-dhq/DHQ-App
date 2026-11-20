@@ -15,6 +15,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import com.nhom5.dhqapp.data.AppDatabase
 import com.nhom5.dhqapp.ui.theme.ExpenseRed
 import com.nhom5.dhqapp.ui.theme.IncomeGreen
@@ -37,6 +40,15 @@ fun ReportScreen(userId: Int, db: AppDatabase) {
     )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var period by remember { mutableStateOf("MONTH") }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) { viewModel.load(period) }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
 
     Scaffold(topBar = { CenterAlignedTopAppBar(title = { Text("Báo cáo thống kê") }) }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).padding(16.dp)) {

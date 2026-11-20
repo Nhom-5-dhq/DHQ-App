@@ -23,7 +23,7 @@ class DashboardViewModel(
             _uiState.value = DashboardUiState.Loading
             delay(400) // giả lập tải dữ liệu
             try {
-                val txns = db.transactionDao().getByUserId(userId)
+                val txns = db.transactionDao().getActiveByUserId(userId)
                 val income = txns.filter { it.type == "THU" }.sumOf { it.amount }
                 val expense = txns.filter { it.type == "CHI" }.sumOf { it.amount }
                 val recent = txns.take(5).map { t ->

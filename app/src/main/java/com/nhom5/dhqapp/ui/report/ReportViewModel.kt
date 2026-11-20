@@ -23,7 +23,7 @@ class ReportViewModel(
         viewModelScope.launch {
             _uiState.value = ReportUiState.Loading
             try {
-                val allTxns = db.transactionDao().getByUserId(userId)
+                val allTxns = db.transactionDao().getActiveByUserId(userId)
                 val now = System.currentTimeMillis()
                 val minTime = when (period) {
                     "WEEK" -> now - 7L * 24 * 3600 * 1000

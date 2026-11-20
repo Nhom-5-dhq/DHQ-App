@@ -29,7 +29,7 @@ class TransactionViewModel(
             delay(300)
             try {
                 _categories.value = db.categoryDao().getAll()
-                val txns = db.transactionDao().getByUserId(userId)
+                val txns = db.transactionDao().getActiveByUserId(userId)
                 val items = txns.map { t ->
                     val cat = db.categoryDao().getById(t.categoryId)
                     TransactionListItem(t.id, cat?.name ?: "Khác", t.type, t.amount, t.note, t.date)
@@ -63,7 +63,7 @@ class TransactionViewModel(
 
     fun deleteTransaction(id: Int) {
         viewModelScope.launch {
-            db.transactionDao().softDelete(id, System.currentTimeMillis())
+            db.transactionDao().softDelete(id, userId, System.currentTimeMillis())
             load()
         }
     }
