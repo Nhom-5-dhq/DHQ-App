@@ -83,11 +83,17 @@ class LoginActivity : AppCompatActivity() {
             startActivity(Intent(this, ForgotPasswordActivity::class.java))
         }
         binding.btnGoogle.setOnClickListener {
+            // Xóa tài khoản Google đã chọn ở lần trước để lần đăng nhập này
+            // luôn hiện màn hình chọn tài khoản.
             val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id)) // tự sinh từ google-services.json
+                .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
                 .build()
-            googleSignInLauncher.launch(GoogleSignIn.getClient(this, gso).signInIntent)
+
+            val googleClient = GoogleSignIn.getClient(this, gso)
+            googleClient.signOut().addOnCompleteListener {
+                googleSignInLauncher.launch(googleClient.signInIntent)
+            }
         }
 
         binding.btnLogin.setOnClickListener {

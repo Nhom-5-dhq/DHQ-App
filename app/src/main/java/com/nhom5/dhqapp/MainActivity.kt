@@ -15,6 +15,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import com.nhom5.dhqapp.data.AppDatabase
 import com.nhom5.dhqapp.data.SessionManager
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.firebase.auth.FirebaseAuth
 import com.nhom5.dhqapp.ui.dashboard.DashboardScreen
 import com.nhom5.dhqapp.ui.theme.DHQAppTheme
 import com.nhom5.dhqapp.ui.transaction.TransactionScreen
@@ -79,9 +82,22 @@ class MainActivity : AppCompatActivity() {
                                     onDarkModeChange = { darkMode = it },
                                     onLogout = {
                                         lifecycleScope.launch {
-                                            session.logout()
-                                            startActivity(Intent(this@MainActivity, WelcomeActivity::class.java))
-                                            finish()
+                                            // Đăng xuất cả Firebase, Google Sign-In và phiên Room/DataStore.
+                                            FirebaseAuth.getInstance().signOut()
+                                            val googleClient = GoogleSignIn.getClient(
+                                                this@MainActivity,
+                                                GoogleSignInOptions.DEFAULT_SIGN_IN
+                                            )
+                                            googleClient.signOut().addOnCompleteListener {
+                                                lifecycleScope.launch {
+                                                    session.logout()
+                                                    val intent = Intent(this@MainActivity, WelcomeActivity::class.java).apply {
+                                                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                                    }
+                                                    startActivity(intent)
+                                                    finish()
+                                                }
+                                            }
                                         }
                                     }
                                 )
