@@ -48,11 +48,43 @@ class MainActivity : AppCompatActivity() {
             var ready by remember { mutableStateOf(false) }
 
             LaunchedEffect(Unit) {
+
                 userId = session.loggedInUserId.first()
-                if (userId == -1) {
-                    startActivity(Intent(this@MainActivity, WelcomeActivity::class.java))
-                    finish()
-                } else ready = true
+
+                val user = db.userDao().findById(userId)
+
+                when {
+
+                    user == null || !user.isActive -> {
+
+                        session.logout()
+
+                        startActivity(
+                            Intent(
+                                this@MainActivity,
+                                WelcomeActivity::class.java
+                            )
+                        )
+
+                        finish()
+                    }
+
+                    user.role == "admin" -> {
+
+                        startActivity(
+                            Intent(
+                                this@MainActivity,
+                                AdminActivity::class.java
+                            )
+                        )
+
+                        finish()
+                    }
+
+                    else -> {
+                        ready = true
+                    }
+                }
             }
 
             DHQAppTheme(darkTheme = darkMode) {
