@@ -28,4 +28,7 @@ interface TransactionDao {
 
     @Query("UPDATE transactions SET isDeleted = 0, deletedAt = 0 WHERE userId = :userId AND isDeleted = 1")
     suspend fun restoreAllDeleted(userId: Int)
+
+    @Query("SELECT COUNT(*) FROM transactions WHERE categoryId = :categoryId AND isDeleted = 0")
+    suspend fun countActiveByCategoryId(categoryId: Int): Int
 }

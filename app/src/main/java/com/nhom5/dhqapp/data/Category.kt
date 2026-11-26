@@ -7,5 +7,6 @@ import androidx.room.PrimaryKey
 data class Category(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String,
-    val type: String   // "THU" hoặc "CHI"
+    val type: String,             // "THU" hoặc "CHI"
+    val isDefault: Boolean = false // true = danh mục cố định, false = người dùng thêm
 )

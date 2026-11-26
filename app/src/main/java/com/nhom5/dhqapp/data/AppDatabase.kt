@@ -1,4 +1,3 @@
-
 package com.nhom5.dhqapp.data
 
 import android.content.Context
@@ -16,7 +15,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         PasswordResetRequest::class,
         PasswordChangeLog::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -38,9 +37,7 @@ abstract class AppDatabase : RoomDatabase() {
 
         // Migration từ version 2 lên 3
         private val MIGRATION_2_3 = object : Migration(2, 3) {
-
             override fun migrate(db: SupportSQLiteDatabase) {
-
                 db.execSQL("""
                     ALTER TABLE transactions
                     ADD COLUMN isDeleted INTEGER NOT NULL DEFAULT 0
@@ -55,9 +52,7 @@ abstract class AppDatabase : RoomDatabase() {
 
         // Migration từ version 3 lên 4
         private val MIGRATION_3_4 = object : Migration(3, 4) {
-
             override fun migrate(db: SupportSQLiteDatabase) {
-
                 // Bổ sung quyền tài khoản
                 db.execSQL("""
                     ALTER TABLE users
@@ -136,10 +131,27 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        // Migration từ version 4 lên 5 (thêm cột isDefault cho danh mục cố định)
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    ALTER TABLE categories
+                    ADD COLUMN isDefault INTEGER NOT NULL DEFAULT 0
+                """)
+
+                db.execSQL("""
+                    UPDATE categories SET isDefault = 1
+                    WHERE name IN (
+                        'Lương', 'Thưởng', 'Đầu tư', 'Thu khác',
+                        'Ăn uống', 'Di chuyển', 'Mua sắm', 'Nhà cửa',
+                        'Giải trí', 'Sức khỏe', 'Học tập', 'Chi khác'
+                    )
+                """)
+            }
+        }
+
         fun getDatabase(context: Context): AppDatabase {
-
             return INSTANCE ?: synchronized(this) {
-
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
@@ -147,22 +159,20 @@ abstract class AppDatabase : RoomDatabase() {
                 )
                     .addMigrations(
                         MIGRATION_2_3,
-                        MIGRATION_3_4
+                        MIGRATION_3_4,
+                        MIGRATION_4_5
                     )
                     .addCallback(seedCallback)
                     .build()
 
                 INSTANCE = instance
-
                 instance
             }
         }
 
-        // Khởi tạo danh mục mặc định
+        // Khởi tạo 12 danh mục mặc định (cố định)
         private val seedCallback = object : RoomDatabase.Callback() {
-
             override fun onCreate(db: SupportSQLiteDatabase) {
-
                 super.onCreate(db)
 
                 val thu = listOf(
@@ -185,13 +195,13 @@ abstract class AppDatabase : RoomDatabase() {
 
                 thu.forEach {
                     db.execSQL(
-                        "INSERT INTO categories (name, type) VALUES ('$it', 'THU')"
+                        "INSERT INTO categories (name, type, isDefault) VALUES ('$it', 'THU', 1)"
                     )
                 }
 
                 chi.forEach {
                     db.execSQL(
-                        "INSERT INTO categories (name, type) VALUES ('$it', 'CHI')"
+                        "INSERT INTO categories (name, type, isDefault) VALUES ('$it', 'CHI', 1)"
                     )
                 }
             }
